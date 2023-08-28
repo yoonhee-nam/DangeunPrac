@@ -12,11 +12,17 @@ import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.view.animation.AlphaAnimation
+import android.widget.ListAdapter
+import android.widget.ListView
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.NotificationCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -25,6 +31,39 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        binding.recyclerView.apply {
+            this.adapter = adapter
+            layoutManager = LinearLayoutManager(context)
+            setHasFixedSize(true)
+        }
+
+        val fadeIn = AlphaAnimation(0f, 1f).apply { duration = 500 }
+        val fadeOut = AlphaAnimation(1f, 0f).apply { duration = 500 }
+        var isTop = true
+
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (!binding.recyclerView.canScrollVertically(-1)
+                    && newState == RecyclerView.SCROLL_STATE_IDLE
+                ) {
+                    binding.floatingActionButton.startAnimation(fadeOut)
+                    binding.floatingActionButton.visibility = View.GONE
+                    isTop = true
+                } else {
+                    if (isTop) {
+                        binding.floatingActionButton.visibility = View.VISIBLE
+                        binding.floatingActionButton.startAnimation(fadeIn)
+                        isTop = false
+                    }
+                }
+            }
+        })
+
+        binding.floatingActionButton.setOnClickListener {
+            binding.recyclerView.smoothScrollToPosition(0)
+        }
 
         val dataList = mutableListOf<MyItem>()
         dataList.add(
@@ -36,7 +75,8 @@ class MainActivity : AppCompatActivity() {
                 "1,000원",
                 "서울 서대문구 창천동",
                 13,
-                25
+                25,
+                false
             )
         )
         dataList.add(
@@ -48,7 +88,8 @@ class MainActivity : AppCompatActivity() {
                 "20,000원",
                 "인천 계양구 귤현동",
                 8,
-                28
+                28,
+                false
             )
         )
         dataList.add(
@@ -60,7 +101,8 @@ class MainActivity : AppCompatActivity() {
                 "10,000원",
                 "수성구 범어동",
                 23,
-                5
+                5,
+                false
             )
         )
         dataList.add(
@@ -72,7 +114,8 @@ class MainActivity : AppCompatActivity() {
                 "10,000원",
                 "해운대구 우제2동",
                 14,
-                17
+                17,
+                false
             )
         )
         dataList.add(
@@ -84,7 +127,8 @@ class MainActivity : AppCompatActivity() {
                 "150,000",
                 "연제구 연산제8동",
                 22,
-                9
+                9,
+                false
             )
         )
         dataList.add(
@@ -96,7 +140,8 @@ class MainActivity : AppCompatActivity() {
                 "50,000원",
                 "수원시 영통구 원천동",
                 25,
-                16
+                16,
+                false
             )
         )
         dataList.add(
@@ -108,7 +153,8 @@ class MainActivity : AppCompatActivity() {
                 "150,000원",
                 "남구 옥동",
                 142,
-                54
+                54,
+                false
             )
         )
         dataList.add(
@@ -120,7 +166,8 @@ class MainActivity : AppCompatActivity() {
                 "180,000원",
                 "동래구 온천제2동",
                 31,
-                7
+                7,
+                false
             )
         )
         dataList.add(
@@ -132,7 +179,8 @@ class MainActivity : AppCompatActivity() {
                 "30,000원",
                 "원주시 명륜2동",
                 7,
-                28
+                28,false
+
             )
         )
         dataList.add(
@@ -144,15 +192,44 @@ class MainActivity : AppCompatActivity() {
                 "190,000원",
                 "중구 동화동",
                 40,
-                6
+                6,
+                false
             )
         )
 
         val adapter = MyAdapter(dataList)
+        adapter.itemClick = object : MyAdapter.ItemClick {
+            override fun onClick(view: View, position: Int) {
+                val clickItem = dataList[position]
+                val intent = Intent(this@MainActivity, SecondActivity::class.java)
+                intent.putExtra("clickItem", clickItem)
+                startActivity(intent)
+            }
+        }
+        adapter.itemLongClick = object : MyAdapter.ItemLongClicked {
+            override fun onItemLongClick(view: View, position: Int): Boolean {
+                var builder = AlertDialog.Builder(this@MainActivity)
+                builder.setTitle("삭제 확인")
+                builder.setIcon(R.drawable.bell)
+
+                val v1 = layoutInflater.inflate(R.layout.dialog, null)
+                builder.setView(v1)
+
+                val listener = DialogInterface.OnClickListener { p0, p1 ->
+                    dataList.removeAt(position)
+                    adapter.notifyDataSetChanged()
+
+                }
+                builder.setPositiveButton("확인", listener)
+                builder.setNegativeButton("취소", null)
+
+                builder.show()
+
+             return true
+            }
+        }
         binding.recyclerView.adapter = adapter
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
-
-
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -163,28 +240,29 @@ class MainActivity : AppCompatActivity() {
         builder.setIcon(R.drawable.reply)
 
         val v1 = layoutInflater.inflate(R.layout.dialog, null)
-        builder. setView(v1)
+        builder.setView(v1)
 
-        val listener = DialogInterface.OnClickListener { p0,p1 ->
+        val listener = DialogInterface.OnClickListener { p0, p1 ->
             val alert = p0 as AlertDialog
 
         }
-        builder.setPositiveButton("확인",listener)
-        builder.setNegativeButton("취소",null)
+        builder.setPositiveButton("확인", listener)
+        builder.setNegativeButton("취소", null)
 
         builder.show()
         binding.iconBell.setOnClickListener {
             notification()
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
-    fun notification(){
+    fun notification() {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         val builder: NotificationCompat.Builder
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ECLAIR_0_1){
-            val channelId="one-channel"
-            val channelName="My Channel One"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ECLAIR_0_1) {
+            val channelId = "one-channel"
+            val channelName = "My Channel One"
             val channel = NotificationChannel(
                 channelId,
                 channelName,
@@ -201,7 +279,7 @@ class MainActivity : AppCompatActivity() {
                 enableVibration(true)
             }
             manager.createNotificationChannel(channel)
-            builder = NotificationCompat.Builder(this,channelId)
+            builder = NotificationCompat.Builder(this, channelId)
         } else {
             builder = NotificationCompat.Builder(this)
         }
@@ -209,21 +287,30 @@ class MainActivity : AppCompatActivity() {
         val bitmap = BitmapFactory.decodeResource(resources, R.drawable.bell)
         val intent = Intent(this, SecondActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
         // 알림의 기본 정보
         builder.run {
             setSmallIcon(R.mipmap.ic_launcher)
             setWhen(System.currentTimeMillis())
             setContentTitle("새로운 알림입니다.")
             setContentText("알림이 잘 보이시나요.")
-            setStyle(NotificationCompat.BigTextStyle()
-                .bigText("이것은 긴텍스트 샘플입니다. 아주 긴 텍스트를 쓸때는 여기다 하면 됩니다.이것은 긴텍스트 샘플입니다." +
-                        "아주 긴 텍스트를 쓸때는 여기다 하면 됩니다.이것은 긴텍스트 샘플입니다. 아주 긴 텍스트를 쓸때는 여기다 하면 됩니다."))
-                        setLargeIcon(bitmap)
+            setStyle(
+                NotificationCompat.BigTextStyle()
+                    .bigText(
+                        "이것은 긴텍스트 샘플입니다. 아주 긴 텍스트를 쓸때는 여기다 하면 됩니다.이것은 긴텍스트 샘플입니다." +
+                                "아주 긴 텍스트를 쓸때는 여기다 하면 됩니다.이것은 긴텍스트 샘플입니다. 아주 긴 텍스트를 쓸때는 여기다 하면 됩니다."
+                    )
+            )
+            setLargeIcon(bitmap)
 //            setStyle(NotificationCompat.BigPictureStyle()
 //                    .bigPicture(bitmap)
 //                    .bigLargeIcon(null))  // hide largeIcon while expanding
-                        addAction(R.mipmap.ic_launcher, "Action", pendingIntent)
+            addAction(R.mipmap.ic_launcher, "Action", pendingIntent)
         }
 
 
