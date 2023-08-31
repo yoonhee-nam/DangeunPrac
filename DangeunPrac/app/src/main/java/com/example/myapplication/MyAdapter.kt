@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,6 +29,7 @@ class MyAdapter(val mItems: MutableList<MyItem>) : RecyclerView.Adapter<MyAdapte
         return Holder(binding)
     }
 
+    @SuppressLint("SuspiciousIndentation")
     override fun onBindViewHolder(holder: Holder, position: Int) {
         holder.itemView.setOnClickListener {
             itemClick?.onClick(it, position)
@@ -38,12 +40,18 @@ class MyAdapter(val mItems: MutableList<MyItem>) : RecyclerView.Adapter<MyAdapte
         }
         holder.heart.setOnClickListener {
             val currentItem = mItems[position]
-            currentItem.heart = !currentItem.heart // Toggle the heart value
-            if (currentItem.heart) {
+//            currentItem.heart = !currentItem.heart // Toggle the heart value
+            if (!currentItem.heart) {
                 holder.heart.setImageResource(R.drawable.fillheart)
+                mItems[position].heart = true
+                mItems[position].aLike += 1
             } else {
+//                if (currentItem.heart == true)
                 holder.heart.setImageResource(R.drawable.empty_heart)
+                mItems[position].aLike -= 1
+                mItems[position].heart = false
             }
+            notifyItemChanged(position)
         }
 
         holder.iconImageView.setImageResource(mItems[position].aIcon)
@@ -53,7 +61,11 @@ class MyAdapter(val mItems: MutableList<MyItem>) : RecyclerView.Adapter<MyAdapte
         holder.price.text = mItems[position].aPrice
         holder.like.text = mItems[position].aLike.toString()
         holder.reply.text = mItems[position].aReply.toString()
-        holder.heart.setImageResource(R.drawable.empty_heart)
+        if (mItems[position].heart) {
+            holder.heart.setImageResource(R.drawable.fillheart)
+        }else {
+            holder.heart.setImageResource(R.drawable.empty_heart)
+        }
 
 
     }
@@ -64,6 +76,10 @@ class MyAdapter(val mItems: MutableList<MyItem>) : RecyclerView.Adapter<MyAdapte
 
     override fun getItemCount(): Int {
         return mItems.size
+    }
+    fun setHeart(position: Int, heart: Boolean) {
+        mItems[position].heart = heart
+        notifyItemChanged(position)
     }
 
 
@@ -77,9 +93,6 @@ class MyAdapter(val mItems: MutableList<MyItem>) : RecyclerView.Adapter<MyAdapte
         val like = binding.heartCount
         val reply = binding.replyCount
         val heart = binding.emptyHeart
-    }
-    inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        // ViewHolder의 초기화 등의 코드
     }
 
 }

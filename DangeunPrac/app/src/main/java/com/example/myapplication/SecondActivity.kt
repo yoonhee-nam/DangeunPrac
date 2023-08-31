@@ -9,6 +9,7 @@ import com.google.android.material.snackbar.Snackbar
 class SecondActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySecondBinding
+    private var heart: Boolean = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySecondBinding.inflate(layoutInflater)
@@ -33,18 +34,18 @@ class SecondActivity : AppCompatActivity() {
             binding.textView7.text = clickItem.aReason
             binding.textView8.text = clickItem.aPrice
 
-            var heart = clickItem?.heart == true
+            heart = clickItem.heart
 
-            binding.heart.setImageResource(if(heart) {R.drawable.fillheart}else{R.drawable.empty_heart})
+            binding.heart.setImageResource(if (heart) R.drawable.fillheart else R.drawable.empty_heart)
 
             binding.heart.setOnClickListener {
-                if(!heart){
+                heart = if(!heart){
                     binding.heart.setImageResource(R.drawable.fillheart)
                     Snackbar.make(binding.constraintLayout, "관심목록에 추가됐습니다.", Snackbar.LENGTH_SHORT).show()
-                    heart = true
+                    true
                 } else {
                     binding.heart.setImageResource(R.drawable.empty_heart)
-                    heart = false
+                    false
                 }
             }
         }
@@ -52,8 +53,8 @@ class SecondActivity : AppCompatActivity() {
 
     fun exit() {
         val intent = Intent(this, MainActivity::class.java).apply {
-            putExtra("clickItem", intent)
-            putExtra("heart", intent)
+            putExtra("itemIndex", intent.getIntExtra("itemIndex",0))
+            putExtra("heart", heart)
         }
         setResult(RESULT_OK, intent)
         if (!isFinishing) finish()

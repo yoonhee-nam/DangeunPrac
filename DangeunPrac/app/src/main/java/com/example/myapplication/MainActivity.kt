@@ -63,9 +63,6 @@ class MainActivity : AppCompatActivity() {
         })
 
 
-
-
-
         val dec_up = DecimalFormat("#,###원")
 
 
@@ -189,7 +186,7 @@ class MainActivity : AppCompatActivity() {
                 dec_up.format(30000),
                 "원주시 명륜2동",
                 7,
-                28,false
+                28, false
 
             )
         )
@@ -229,39 +226,34 @@ class MainActivity : AppCompatActivity() {
                 val listener = DialogInterface.OnClickListener { p0, p1 ->
                     dataList.removeAt(position)
                     adapter.notifyDataSetChanged()
-
                 }
                 builder.setPositiveButton("확인", listener)
                 builder.setNegativeButton("취소", null)
-
                 builder.show()
-
-             return true
+                return true
             }
         }
         binding.recyclerView.adapter = adapter
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        activityResultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == RESULT_OK) {
+                    val itemIndex = result.data?.getIntExtra("itemIndex", 0) ?: 0
+                    val heart = result.data?.getBooleanExtra("heart", false) ?: false
 
-        activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
-            if (it.resultCode == RESULT_OK) {
-                val itemIndex = it.data?.getIntExtra("itemIndex", 0 ) as Int
-                val heart = it.data?.getBooleanExtra("heart", false) as Boolean
-
-                if(heart) {
-                    dataList[itemIndex].heart = true
-                    dataList[itemIndex].aLike += 1
-                } else {
-                    if (dataList[itemIndex].heart)
-                    dataList[itemIndex].heart = false
-                    dataList[itemIndex].aLike -= 1
-                }
-                adapter.notifyItemChanged(itemIndex)
+                    if (heart) {
+                        dataList[itemIndex].heart = true
+                        dataList[itemIndex].aLike += 1
+                    } else {
+//                        if (dataList[itemIndex].heart)
+                        dataList[itemIndex].heart = false
+                        dataList[itemIndex].aLike -= 1
+                    }
+                    adapter.setHeart(itemIndex, heart)
+//                    adapter.notifyItemChanged(itemIndex)
                 }
             }
-        }
-
-
-
+    }
 
 
     @RequiresApi(Build.VERSION_CODES.O)
