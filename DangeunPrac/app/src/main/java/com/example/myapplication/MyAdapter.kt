@@ -4,17 +4,14 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView.OnItemLongClickListener
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.example.myapplication.databinding.ItemRecyclerviewBinding
 
 
 class MyAdapter(val mItems: MutableList<MyItem>) : RecyclerView.Adapter<MyAdapter.Holder>() {
 
     interface ItemClick {
-        fun onClick(view : View, position : Int)
+        fun onClick(view : View, position : Int , aLike : Int)
 
     }
     interface ItemLongClicked{
@@ -32,7 +29,7 @@ class MyAdapter(val mItems: MutableList<MyItem>) : RecyclerView.Adapter<MyAdapte
     @SuppressLint("SuspiciousIndentation")
     override fun onBindViewHolder(holder: Holder, position: Int) {
         holder.itemView.setOnClickListener {
-            itemClick?.onClick(it, position)
+            itemClick?.onClick(it, position , mItems[position].aLike)
         }
         holder.itemView.setOnLongClickListener {
             itemLongClick?.onItemLongClick(it, position)
@@ -77,8 +74,9 @@ class MyAdapter(val mItems: MutableList<MyItem>) : RecyclerView.Adapter<MyAdapte
     override fun getItemCount(): Int {
         return mItems.size
     }
-    fun setHeart(position: Int, heart: Boolean) {
+    fun setHeart(position: Int, heart: Boolean, aLike: Int) {
         mItems[position].heart = heart
+        mItems[position].aLike = aLike
         notifyItemChanged(position)
     }
 

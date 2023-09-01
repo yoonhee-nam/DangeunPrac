@@ -10,10 +10,13 @@ class SecondActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySecondBinding
     private var heart: Boolean = false
+    private var aLike = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySecondBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        aLike = intent.getIntExtra("aLike",0)
 
 
         binding.arrow.setOnClickListener {
@@ -40,10 +43,12 @@ class SecondActivity : AppCompatActivity() {
 
             binding.heart.setOnClickListener {
                 heart = if(!heart){
+                    aLike += 1
                     binding.heart.setImageResource(R.drawable.fillheart)
                     Snackbar.make(binding.constraintLayout, "관심목록에 추가됐습니다.", Snackbar.LENGTH_SHORT).show()
                     true
                 } else {
+                    aLike -= 1
                     binding.heart.setImageResource(R.drawable.empty_heart)
                     false
                 }
@@ -51,10 +56,12 @@ class SecondActivity : AppCompatActivity() {
         }
     }
 
+
     fun exit() {
         val intent = Intent(this, MainActivity::class.java).apply {
             putExtra("itemIndex", intent.getIntExtra("itemIndex",0))
             putExtra("heart", heart)
+            putExtra("aLike", aLike)
         }
         setResult(RESULT_OK, intent)
         if (!isFinishing) finish()
